@@ -1,6 +1,5 @@
 const validator = require('validator')
 
-
 const validateSignupData = (req) => {
     const { firstName, lastName, email, password } = req.body;
     if(!firstName || !lastName){
@@ -37,9 +36,26 @@ const validateProfilePasswordData = (req) => {
         throw new Error("New password and confirm password do not match!");
     }
 }
+
+const validateConnectionRequest = (req) => {
+    const { status, toUserId } = req.params;
+    if (!toUserId || !status) {
+        throw new Error("Invalid Request!!");
+    }
+    if (!['interested', 'ignored'].includes(status)) {
+        throw new Error("Invalid status value!");
+    }
+
+
+    if (!validator.isMongoId(toUserId)) {
+        throw new Error("Invalid user ID format!");
+    }
+    return true;
+}
 module.exports = {
     validateSignupData,
     validateLoginData,
     validateProfileEditData,
-    validateProfilePasswordData
+    validateProfilePasswordData,
+    validateConnectionRequest
 };
