@@ -1,5 +1,11 @@
 const moongoose = require("mongoose");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require('bcrypt');
+
+
+const TOKEN_SECRET = "ksbcdkjabsdjkcbiuweagsfiuogasdvbc@adsbvkjbakd2134jbdsfk&#^@$*&*#@!";
+
 const userSchema = new moongoose.Schema({
     firstName: {
         type: String,
@@ -61,6 +67,18 @@ const userSchema = new moongoose.Schema({
         default: [""]
     },
 },{timestamps: true});
+
+userSchema.methods.getJWT = async function() {
+    const user = this;
+    const jwtToken =  await jwt.sign({ userId: user._id }, TOKEN_SECRET, { expiresIn: "1d" });
+    return jwtToken
+}
+
+userSchema.methods.isPasswordValid = async function(passwordByUser) {
+    const {password: passHash} = this;
+    const isPasswordValid = await bcrypt.compare(passwordByUser, passHash);
+    return isPasswordValid;
+}  
 
 const User = moongoose.model("User", userSchema);
 module.exports = User;
