@@ -21,8 +21,25 @@ const validateLoginData = (req) => {
     }
 };
 
+const validateProfileEditData = (req) => {
+    const editFields = ['firstName', 'lastName', 'age', 'gender', 'photoUrl', 'about', 'skills'];
+    const isProfileEditAllowed = Object.keys(req.body).every(field => editFields.includes(field));
+    return isProfileEditAllowed;
+};
 
+const validateProfilePasswordData = (req) => {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    if(!currentPassword || !newPassword || !confirmPassword){
+        throw new Error("Fill all required fields!");
+    }else if(!validator.isStrongPassword(newPassword)){
+        throw new Error("Please enter a strong password!");
+    }else if(newPassword !== confirmPassword){
+        throw new Error("New password and confirm password do not match!");
+    }
+}
 module.exports = {
     validateSignupData,
-    validateLoginData
+    validateLoginData,
+    validateProfileEditData,
+    validateProfilePasswordData
 };
