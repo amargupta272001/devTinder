@@ -47,7 +47,7 @@ const userSchema = new moongoose.Schema({
         type: String,
         default: "https://www.w3schools.com/howto/img_avatar.png",
          validate(value) {
-            if(!validator.isUrl(value)){
+            if(!validator.isURL(value)){
                 throw new Error("Invalid URL format");
             }
         }   
@@ -58,7 +58,7 @@ const userSchema = new moongoose.Schema({
     },
     skills: {
         type: [String],
-        default: []
+        default: [""]
     },
 },{timestamps: true});
 

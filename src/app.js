@@ -1,8 +1,10 @@
 const express = require('express');
 const connectDB = require('./config/database');
 const User = require('./models/user');
-
+const { validateSignupData, validateLoginData} = require('./utils/validation');
 const app = express();
+const bcrypt = require('bcrypt');
+
 
 app.use(express.json());
 
@@ -66,27 +68,56 @@ app.patch("/user", async(req, res) => {
 
 // signup user
 app.post("/signup", async (req, res) => {
-    console.log(req.body)
-    const user = new User({
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.email,
-      password: req.body.password,
-      age: req.body.age,
-      gender: req.body.gender,
-        photoUrl: req.body.photoUrl || "https://www.w3schools.com/howto/img_avatar.png",
-        about: req.body.about || "Hey there! I am using DevTinder",
-        skills: req.body.skills || []
-    });
+
     try{
-        
+        //validate user data
+        validateSignupData(req);
+        const {firstName, lastName, email, password, age, gender, photoUrl, about, skills} = req.body;
+
+        //decrypt
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const user = new User({
+            firstName,
+            lastName,
+            email,
+            password: passwordHash,
+            age,
+            gender,
+            photoUrl,
+            about,
+            skills
+        });
+
         await user.save();
         res.send("User Added Successfully");
     }catch(err){
-        res.status(500).send("Error in adding user: " + err.message);
+        res.status(500).send("Error: " + err.message);
     }
 });
 
+
+// signup user
+app.post("/login", async (req, res) => {
+    
+    try{
+        //validate user data
+        validateLoginData(req);
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ email });
+        if(!user) throw new Error("Invalid credentials");
+
+        const {password: passHash} = user
+        const isPasswordValid = await bcrypt.compare(password, passHash);
+
+        if(!isPasswordValid) throw new Error("Invalid credentials");
+
+        res.send("Login Successful!!");
+    }catch(err){
+        res.status(500).send("Error: " + err.message);
+    }
+});
 
 connectDB().then(() => {
   console.log("Connection established");
